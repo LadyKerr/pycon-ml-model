@@ -10,6 +10,6 @@ Build an ML Model live with GitHub Copilot
 - [Prompt crafting with GitHub Copilot](https://www.youtube.com/watch?v=GPLUGJsVx0s)
 
 ---
-## You can find the slides in [this pdf](https://github.com/LadyKerr/gh-copilot-talk/blob/main/pycon/gh-copilot-vscode.pdf)
+## You can find the slides in [this pdf](https://github.com/LadyKerr/gh-copilot-talk/blob/main/pycon/pycon-copilot.pdf)
 
 ![slide-1](https://github.com/LadyKerr/try-streamlit/assets/47188731/1af40df6-89a8-41bd-b7e0-dfa48682e652)
