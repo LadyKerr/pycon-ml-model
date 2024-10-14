@@ -1,8 +1,6 @@
-# create a basic server using Flask
-from flask import Flask, jsonify, request
+import joblib
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
-import pickle
 
 app = Flask(__name__)
 
@@ -10,56 +8,46 @@ app = Flask(__name__)
 CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-
 @app.route('/')
 @cross_origin()
 def home():
     return "Let's build a flight delay prediction api!"
 
-
-# Load the model from the file
-model = pickle.load(open('model.pkl', 'rb'))
-
-# Create a route that returns a prediction of flight delay using the model
-# the model accepts two params, day of the week and airport id
-
-
-app = Flask(__name__)
-
+# Load the model (ensure the path to your model file is correct)
+model = joblib.load('model.pkl')
 
 @app.route('/predict', methods=['GET'])
 @cross_origin()
 def predict():
     try:
-        airport_id = int(request.args.get('airport_id'))
-        day_of_week = int(request.args.get('day_of_week'))
-        prediction = model.predict_proba([[day_of_week, airport_id]])
+        # Extract input parameters
+        airport_id = request.args.get('airport_id')
+        day_of_week = request.args.get('day_of_week')
+        
+        # Ensure the input parameters are valid integers
+        if airport_id is None or day_of_week is None:
+            raise ValueError("Missing required query parameters: 'airport_id' and 'day_of_week'")
+        
+        airport_id = int(airport_id)
+        day_of_week = int(day_of_week)
+        
+        # Ensure the input is a 2D array
+        input_data = [[day_of_week, airport_id]]
+        
+        # Make prediction
+        prediction = model.predict_proba(input_data)
         prediction_list = prediction[0].tolist()
 
-        # split the prediction into two variables
-        # the first value is the probability of the flight not being delayed
-        # the second value is the probability of the flight being delayed
         confident_not_delayed, delayed = prediction_list
-
-        # convert the prediction to a percentage and make it 0 decimal places
-        confident_not_delayed = int(round(confident_not_delayed * 100, 0))
-        delayed = int(round(delayed * 100, 0))
-
-        print(confident_not_delayed, delayed)
-
-        return jsonify(
-            {
-                'model_prediction': prediction_list,
-                'confidence_percent': confident_not_delayed,
-                'delayed_percent': delayed,
-                'interpretation': 'There is a {:.0f}% chance that your flight will be delayed. We are {:.0f}% confident.'.format(delayed, confident_not_delayed)
-            })
+        return jsonify({
+            'confident_not_delayed': confident_not_delayed,
+            'delayed': delayed
+        })
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)})
 
 # Create a GET route that returns the list of airports
 # the list of airports is stored in a file called origion_airports.csv
-
 
 @app.route('/airports', methods=['GET'])
 @cross_origin()
@@ -85,7 +73,6 @@ def airports():
             })
     except Exception as e:
         return jsonify({'error': str(e)}), 400
-
 
 if __name__ == '__main__':
     app.run(debug=True)
